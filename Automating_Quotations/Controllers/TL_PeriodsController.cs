@@ -17,9 +17,9 @@ namespace Automating_Quotations.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var periods = dbcontext.CoveragePeriods.Include(cp => cp.CoverageArea).ToList();
+            var periods = await dbcontext.CoveragePeriods.Include(cp => cp.CoverageArea).ToListAsync();
             return Ok(periods);
         }
     }

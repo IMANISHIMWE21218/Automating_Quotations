@@ -16,9 +16,9 @@ namespace Automating_Quotations.Controllers
             this.dbcontext = dbcontext;
         }
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-           var  premiums = dbcontext.PremiumDetails.Include(pd => pd.CoveragePeriod).ThenInclude(navigationPropertyPath: cp => cp.CoverageArea).ToList();
+            var premiums = await dbcontext.PremiumDetails.Include(pd => pd.CoveragePeriod).ThenInclude(cp => cp.CoverageArea).ToListAsync(); 
 
             return Ok(premiums);
         }

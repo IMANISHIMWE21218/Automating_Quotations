@@ -2,7 +2,7 @@
 using Automating_Quotations.Models.Travel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.EntityFrameworkCore;
 
 namespace Automating_Quotations.Controllers
 {
@@ -17,9 +17,10 @@ namespace Automating_Quotations.Controllers
             this.dbcontext = dbcontext;
         }
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var areas = dbcontext.CoverageAreas.ToList();
+            var areas = await dbcontext.CoverageAreas.ToListAsync();
+
             return Ok(areas);
         }
     }
