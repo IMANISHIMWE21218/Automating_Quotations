@@ -20,6 +20,8 @@ public partial class TravelCoverperiod
     [Unicode(false)]
     public string? Description { get; set; }
 
+    public int? Days { get; set; }
+
     [InverseProperty("Cp")]
     public virtual ICollection<TravelRate> TravelRates { get; set; } = new List<TravelRate>();
 }

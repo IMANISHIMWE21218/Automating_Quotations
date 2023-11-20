@@ -3,7 +3,6 @@ using Automating_Quotations.Models.Travel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Collections;
 
 namespace Automating_Quotations.Controllers
 {

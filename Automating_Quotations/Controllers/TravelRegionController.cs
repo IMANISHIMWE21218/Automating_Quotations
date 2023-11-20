@@ -18,7 +18,7 @@ namespace Automating_Quotations.Controllers
         }
 
         [HttpGet]
-       public async Task<ActionResult<IEnumerable<TravelRegion>>> GetTravelRegions()
+        public async Task<ActionResult<IEnumerable<TravelRegion>>> GetTravelRegions()
         {
             return await _context.TravelRegions.ToListAsync();
         }
