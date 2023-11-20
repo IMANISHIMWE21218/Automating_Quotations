@@ -16,34 +16,38 @@ public partial class BkgiDataContext : DbContext
     {
     }
 
-    public virtual DbSet<CoverageArea> CoverageAreas { get; set; }
+    public virtual DbSet<TravelCoverperiod> TravelCoverperiods { get; set; }
 
-    public virtual DbSet<CoveragePeriod> CoveragePeriods { get; set; }
+    public virtual DbSet<TravelRate> TravelRates { get; set; }
 
-    public virtual DbSet<PremiumDetail> PremiumDetails { get; set; }
+    public virtual DbSet<TravelRegion> TravelRegions { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=DataConnection");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<CoverageArea>(entity =>
+        modelBuilder.Entity<TravelCoverperiod>(entity =>
         {
-            entity.HasKey(e => e.CoverageAreaId).HasName("PK__Coverage__049B6DA0AC9DB24C");
+            entity.HasKey(e => e.Cpid).HasName("PK_CPID");
         });
 
-        modelBuilder.Entity<CoveragePeriod>(entity =>
+        modelBuilder.Entity<TravelRate>(entity =>
         {
-            entity.HasKey(e => e.CoveragePeriodId).HasName("PK__Coverage__20EC768AFB2E6F26");
+            entity.HasKey(e => new { e.Rid, e.Cpid }).HasName("pk_TRAVEL_RATES");
 
-            entity.HasOne(d => d.CoverageArea).WithMany(p => p.CoveragePeriods).HasConstraintName("FK__CoverageP__Cover__398D8EEE");
+            entity.HasOne(d => d.Cp).WithMany(p => p.TravelRates)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TRAVEL_COVERPERIOD");
+
+            entity.HasOne(d => d.RidNavigation).WithMany(p => p.TravelRates)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TRAVEL_REGIONS");
         });
 
-        modelBuilder.Entity<PremiumDetail>(entity =>
+        modelBuilder.Entity<TravelRegion>(entity =>
         {
-            entity.HasKey(e => e.PremiumId).HasName("PK__PremiumD__86B646E5C31B0BA8");
-
-            entity.HasOne(d => d.CoveragePeriod).WithMany(p => p.PremiumDetails).HasConstraintName("FK__PremiumDe__Cover__3C69FB99");
+            entity.HasKey(e => e.Rid).HasName("PK_RID");
         });
 
         OnModelCreatingPartial(modelBuilder);
