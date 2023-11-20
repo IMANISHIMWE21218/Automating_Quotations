@@ -14,12 +14,25 @@ builder.Services.AddDbContext<BkgiDataContext>(options => options.UseSqlServer(b
 
 var app = builder.Build();
 
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Other service configurations
+
+builder.Services.AddCors();
+app.UseCors(builder =>
+{
+    builder
+        .AllowAnyOrigin()
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+});
+
 
 app.UseHttpsRedirection();
 
