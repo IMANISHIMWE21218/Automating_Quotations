@@ -22,6 +22,14 @@ public partial class BkgiDataContext : DbContext
 
     public virtual DbSet<TravelRegion> TravelRegions { get; set; }
 
+    public virtual DbSet<TravelInsuranceService> TravelInsuranceServices { get; set; }
+
+
+
+
+
+
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=DataConnection");
 
