@@ -3,6 +3,11 @@ using Automating_Quotations.Models.Travel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Automating_Quotations.Controllers
 {
@@ -16,29 +21,48 @@ namespace Automating_Quotations.Controllers
         {
             _context = context;
         }
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TravelInsuranceService>>> GetTravelInsuranceServices()
         {
-            return  Ok(await _context.TravelInsuranceServices.ToListAsync());
+            return Ok(await _context.TravelInsuranceServices.ToListAsync());
         }
+
         [HttpPost]
-       //async Task<IActionResult> AddTravelInsuranceService(AddTravelInsuranceService addTravelInsuranceService)
-        public async Task<IActionResult> AddTravelInsuranceService([FromBody] AddTravelInsuranceService addTravelInsuranceService)
+        public IActionResult AddTravelInsuranceService([FromBody] AddTravelInsuranceService addTravelInsuranceService)
         {
-            var travelService = new TravelInsuranceService()
+            try
             {
-                Id = Guid.NewGuid(),
-                Dob = addTravelInsuranceService.Dob,
-                StartDate = addTravelInsuranceService.StartDate,
-                EndDate = addTravelInsuranceService.EndDate,
-                Region = addTravelInsuranceService.Region,
-                CoverPeriod = addTravelInsuranceService.CoverPeriod
+                // Create a response model without the Id
+                var responseModel = new
+                {
+                    Dob = addTravelInsuranceService.Dob,
+                    StartDate = addTravelInsuranceService.StartDate,
+                    EndDate = addTravelInsuranceService.EndDate,
+                    RegionId = addTravelInsuranceService.RegionId,
+                    CoverPeriodId = addTravelInsuranceService.CoverPeriodId
+                };
 
-            };
-            await _context.TravelInsuranceServices.AddAsync(travelService);
-            await _context.SaveChangesAsync();  
-            return Ok(travelService);
+                // Do not save to the database, just respond with the data
+                return Ok(responseModel);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Error: {ex.Message}");
+            }
+        }
 
+        private async Task<TravelRate> FetchTravelRateData(string regionId, string coverPeriodId)
+        {
+            // Implement logic to fetch data from Travel Rate API based on regionId and coverPeriodId
+            using (var httpClient = new HttpClient())
+            {
+                var response = await httpClient.GetAsync($"https://localhost:7110/api/TravelRates?regionId={regionId}&coverPeriodId={coverPeriodId}");
+                Console.WriteLine(response);
+                response.EnsureSuccessStatusCode();
+                var travelRateData = JsonConvert.DeserializeObject<TravelRate>(await response.Content.ReadAsStringAsync());
+                return travelRateData;
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Automating_Quotations.Models.Travel
 {
@@ -29,8 +30,9 @@ namespace Automating_Quotations.Models.Travel
         public string? CoverPeriodId { get; set; }
 
         // Navigation properties
+        [JsonIgnore]
         public virtual TravelRegion? Region { get; set; }
-
+        [JsonIgnore]
         public virtual TravelCoverperiod? CoverPeriod { get; set; }
     }
 }
