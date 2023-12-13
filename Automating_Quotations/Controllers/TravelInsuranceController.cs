@@ -69,7 +69,7 @@ namespace Automating_Quotations.Controllers
 
                     // Filter the data based on RegionId and CoverPeriodId
                     travelRateData = travelRateData
-                    .Where(tr => tr.RegionId == regionId && tr.Cpid == coverPeriodId)
+                    .Where(tr => tr.Rid == regionId && tr.Cpid == coverPeriodId)
                     .ToList();
 
                     return travelRateData;
