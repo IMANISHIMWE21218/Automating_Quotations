@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -29,18 +30,22 @@ namespace Automating_Quotations.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddTravelInsuranceService([FromBody] AddTravelInsuranceService addTravelInsuranceService)
+        public async Task<IActionResult> AddTravelInsuranceService([FromBody] AddTravelInsuranceService addTravelInsuranceService)
         {
             try
             {
-                // Create a response model without the Id
+                // Fetch TravelRate data
+                var travelRateData = await FetchTravelRateData(addTravelInsuranceService.RegionId, addTravelInsuranceService.CoverPeriodId);
+
+                // Create a response model including the filtered TravelRate data
                 var responseModel = new
                 {
                     Dob = addTravelInsuranceService.Dob,
                     StartDate = addTravelInsuranceService.StartDate,
                     EndDate = addTravelInsuranceService.EndDate,
                     RegionId = addTravelInsuranceService.RegionId,
-                    CoverPeriodId = addTravelInsuranceService.CoverPeriodId
+                    CoverPeriodId = addTravelInsuranceService.CoverPeriodId,
+                    TravelRateData = travelRateData
                 };
 
                 // Do not save to the database, just respond with the data
@@ -52,17 +57,30 @@ namespace Automating_Quotations.Controllers
             }
         }
 
-        private async Task<TravelRate> FetchTravelRateData(string regionId, string coverPeriodId)
+        private async Task<List<TravelRate>> FetchTravelRateData(string regionId, string coverPeriodId)
         {
-            // Implement logic to fetch data from Travel Rate API based on regionId and coverPeriodId
-            using (var httpClient = new HttpClient())
+            try
             {
-                var response = await httpClient.GetAsync($"https://localhost:7110/api/TravelRates?regionId={regionId}&coverPeriodId={coverPeriodId}");
-                Console.WriteLine(response);
-                response.EnsureSuccessStatusCode();
-                var travelRateData = JsonConvert.DeserializeObject<TravelRate>(await response.Content.ReadAsStringAsync());
-                return travelRateData;
+                using (var httpClient = new HttpClient())
+                {
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/TravelRates?regionId={regionId}&coverPeriodId={coverPeriodId}");
+                    response.EnsureSuccessStatusCode();
+                    var travelRateData = JsonConvert.DeserializeObject<List<TravelRate>>(await response.Content.ReadAsStringAsync());
+
+                    // Filter the data based on RegionId and CoverPeriodId
+                    travelRateData = travelRateData
+                    .Where(tr => tr.RegionId == regionId && tr.Cpid == coverPeriodId)
+                    .ToList();
+
+                    return travelRateData;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in FetchTravelRateData: {ex.Message}");
+                throw; // Rethrow the exception to propagate it up the call stack
             }
         }
     }
 }
+

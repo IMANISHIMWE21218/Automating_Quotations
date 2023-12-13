@@ -10,6 +10,8 @@ namespace Automating_Quotations.Models.Travel;
 [Table("TRAVEL_RATES")]
 public partial class TravelRate
 {
+    internal string RegionId;
+
     [Key]
     [Column("RID")]
     [StringLength(5)]
@@ -32,4 +34,5 @@ public partial class TravelRate
     [ForeignKey("Rid")]
     [InverseProperty("TravelRates")]
     public virtual TravelRegion RidNavigation { get; set; } = null!;
+    public string CoverPeriodId { get; internal set; }
 }
