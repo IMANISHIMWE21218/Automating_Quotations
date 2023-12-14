@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -29,37 +28,31 @@ namespace Automating_Quotations.Controllers
             return Ok(await _context.TravelInsuranceServices.ToListAsync());
         }
 
-
         [HttpPost]
         public async Task<IActionResult> AddTravelInsuranceService([FromBody] AddTravelInsuranceService addTravelInsuranceService)
         {
             try
             {
-                // Fetch TravelRate data
                 var travelRateData = await FetchTravelRateData(addTravelInsuranceService.RegionId, addTravelInsuranceService.CoverPeriodId);
 
-                // Filter TravelRate data based on posted IDs (RegionId and CoverPeriodId)
                 travelRateData = travelRateData
                     .Where(tr => tr.Rid == addTravelInsuranceService.RegionId && tr.Cpid == addTravelInsuranceService.CoverPeriodId)
                     .ToList();
 
-                // Determine how to include TravelRateData based on whether it's empty or not
                 object travelRateDataResponse = travelRateData.Any()
-                    ? (object)travelRateData // Include the filtered data if not empty
-                    : (object)null; // Include null or an empty object if the list is empty
+                    ? (object)travelRateData
+                    : (object)null;
 
-                // Create a response model including the filtered TravelRate data
                 var responseModel = new
                 {
-                    Dob = addTravelInsuranceService.Dob,
-                    StartDate = addTravelInsuranceService.StartDate,
-                    EndDate = addTravelInsuranceService.EndDate,
-                    RegionId = addTravelInsuranceService.RegionId,
-                    CoverPeriodId = addTravelInsuranceService.CoverPeriodId,
+                    addTravelInsuranceService.Dob,
+                    addTravelInsuranceService.StartDate,
+                    addTravelInsuranceService.EndDate,
+                    addTravelInsuranceService.RegionId,
+                    addTravelInsuranceService.CoverPeriodId,
                     TravelRateData = travelRateDataResponse
                 };
 
-                // Do not save to the database, just respond with the data
                 return Ok(responseModel);
             }
             catch (Exception ex)
@@ -67,9 +60,6 @@ namespace Automating_Quotations.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Error: {ex.Message}");
             }
         }
-
-
-
 
         private async Task<List<TravelRate>> FetchTravelRateData(string regionId, string coverPeriodId)
         {
@@ -79,22 +69,14 @@ namespace Automating_Quotations.Controllers
                 {
                     var response = await httpClient.GetAsync($"https://localhost:7110/api/TravelRates?regionId={regionId}&coverPeriodId={coverPeriodId}");
                     response.EnsureSuccessStatusCode();
-                    var travelRateData = JsonConvert.DeserializeObject<List<TravelRate>>(await response.Content.ReadAsStringAsync());
-
-                    // Debugging: Print the retrieved data
-                    Console.WriteLine($"Retrieved data from API: {JsonConvert.SerializeObject(travelRateData)}");
-
-                    return travelRateData;
+                    return JsonConvert.DeserializeObject<List<TravelRate>>(await response.Content.ReadAsStringAsync());
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in FetchTravelRateData: {ex.Message}");
-                throw; // Rethrow the exception to propagate it up the call stack
+                throw;
             }
         }
-
-
     }
 }
-
