@@ -28,7 +28,6 @@ namespace Automating_Quotations.Controllers
         {
             return Ok(await _context.TravelInsuranceServices.ToListAsync());
         }
-
         [HttpPost]
         public async Task<IActionResult> AddTravelInsuranceService([FromBody] AddTravelInsuranceService addTravelInsuranceService)
         {
@@ -36,6 +35,11 @@ namespace Automating_Quotations.Controllers
             {
                 // Fetch TravelRate data
                 var travelRateData = await FetchTravelRateData(addTravelInsuranceService.RegionId, addTravelInsuranceService.CoverPeriodId);
+
+                // Determine how to include TravelRateData based on whether it's empty or not
+                object travelRateDataResponse = travelRateData.Any()
+                    ? (object)travelRateData.First() // Include the first item if the list is not empty
+                    : (object)null; // Include null or an empty object if the list is empty
 
                 // Create a response model including the filtered TravelRate data
                 var responseModel = new
@@ -45,7 +49,7 @@ namespace Automating_Quotations.Controllers
                     EndDate = addTravelInsuranceService.EndDate,
                     RegionId = addTravelInsuranceService.RegionId,
                     CoverPeriodId = addTravelInsuranceService.CoverPeriodId,
-                    TravelRateData = travelRateData
+                    TravelRateData = travelRateDataResponse
                 };
 
                 // Do not save to the database, just respond with the data
@@ -57,6 +61,9 @@ namespace Automating_Quotations.Controllers
             }
         }
 
+
+
+
         private async Task<List<TravelRate>> FetchTravelRateData(string regionId, string coverPeriodId)
         {
             try
@@ -67,10 +74,8 @@ namespace Automating_Quotations.Controllers
                     response.EnsureSuccessStatusCode();
                     var travelRateData = JsonConvert.DeserializeObject<List<TravelRate>>(await response.Content.ReadAsStringAsync());
 
-                    // Filter the data based on RegionId and CoverPeriodId
-                    travelRateData = travelRateData
-                    .Where(tr => tr.Rid == regionId && tr.Cpid == coverPeriodId)
-                    .ToList();
+                    // Debugging: Print the retrieved data
+                    Console.WriteLine($"Retrieved data from API: {JsonConvert.SerializeObject(travelRateData)}");
 
                     return travelRateData;
                 }
@@ -81,6 +86,8 @@ namespace Automating_Quotations.Controllers
                 throw; // Rethrow the exception to propagate it up the call stack
             }
         }
+
+
     }
 }
 
