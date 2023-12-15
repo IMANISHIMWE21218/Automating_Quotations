@@ -5,11 +5,14 @@ namespace Automating_Quotations.Models.Travel
 {
     public class AddTravelInsuranceService
     {
-        public string? Dob { get; set; }
-        public string? StartDate { get; set; }
-        public string? EndDate { get; set; }
+        public DateOnly? Dob { get; set; }
+        public DateOnly? StartDate { get; set; }
+        public DateOnly? EndDate { get; set; }
+        public decimal? RateOfExchange { get; set; }= 0;
         public string? RegionId { get; set; }
         public string? CoverPeriodId { get; set; }
+
+       
     }
 }
 

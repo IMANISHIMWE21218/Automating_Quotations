@@ -39,15 +39,31 @@ namespace Automating_Quotations.Controllers
                     .Where(tr => tr.Rid == addTravelInsuranceService.RegionId && tr.Cpid == addTravelInsuranceService.CoverPeriodId)
                     .ToList();
 
-                object travelRateDataResponse = travelRateData.Any()
-                    ? (object)travelRateData
-                    : (object)null;
+                var AdminFee = 4875;
+                // int taxRate =18%;
+
+                var travelRateDataResponse = travelRateData.Any()
+                ? travelRateData.Select(tr => new
+                {
+                    tr.Rid,
+                    tr.Cpid,
+                    tr.Amount,
+                    // Calculate amount * 2 and include the result
+                    NetPrimium = (addTravelInsuranceService.RateOfExchange.GetValueOrDefault() * tr.Amount) + AdminFee,
+                    GrossPremium = ((addTravelInsuranceService.RateOfExchange.GetValueOrDefault() * tr.Amount) + AdminFee) +
+                                   (((addTravelInsuranceService.RateOfExchange.GetValueOrDefault() * tr.Amount) + AdminFee) * 18/100), // Removed unnecessary cast to int
+
+                    tr.Cp,
+                    tr.RidNavigation
+                }).ToList()
+                : (object)null;
+
 
                 var responseModel = new
                 {
-                    addTravelInsuranceService.Dob,
-                    addTravelInsuranceService.StartDate,
-                    addTravelInsuranceService.EndDate,
+                    Dob = addTravelInsuranceService.Dob?.ToString("MM/dd/yyyy"),
+                    StartDate = addTravelInsuranceService.StartDate?.ToString("MM/dd/yyyy"),
+                    EndDate = addTravelInsuranceService.EndDate?.ToString("MM/dd/yyyy"),
                     addTravelInsuranceService.RegionId,
                     addTravelInsuranceService.CoverPeriodId,
                     TravelRateData = travelRateDataResponse
@@ -78,5 +94,6 @@ namespace Automating_Quotations.Controllers
                 throw;
             }
         }
+
     }
 }
