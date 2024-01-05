@@ -1,10 +1,8 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
-using Automating_Quotations.Models.Motor;
-using Automating_Quotations.Models.Travel;
 using Microsoft.EntityFrameworkCore;
 
-namespace Automating_Quotations.Data;
+namespace Automating_Quotations.Models.Motor;
 
 public partial class BkgiDataContext : DbContext
 {
@@ -17,16 +15,6 @@ public partial class BkgiDataContext : DbContext
     {
     }
 
-    public virtual DbSet<TravelCoverperiod> TravelCoverperiods { get; set; }
-
-    public virtual DbSet<TravelRate> TravelRates { get; set; }
-
-    public virtual DbSet<TravelRegion> TravelRegions { get; set; }
-
-    public virtual DbSet<TravelInsuranceService> TravelInsuranceServices { get; set; }
-    public object TravelCoverperiod { get; internal set; }
-
-    //MT
     public virtual DbSet<MtDuration> MtDurations { get; set; }
 
     public virtual DbSet<MtFire> MtFires { get; set; }
@@ -52,31 +40,6 @@ public partial class BkgiDataContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<TravelCoverperiod>(entity =>
-        {
-            entity.HasKey(e => e.Cpid).HasName("PK_CPID");
-        });
-
-        modelBuilder.Entity<TravelRate>(entity =>
-        {
-            entity.HasKey(e => new { e.Rid, e.Cpid }).HasName("pk_TRAVEL_RATES");
-
-            entity.HasOne(d => d.Cp).WithMany(p => p.TravelRates)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TRAVEL_COVERPERIOD");
-
-            entity.HasOne(d => d.RidNavigation).WithMany(p => p.TravelRates)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TRAVEL_REGIONS");
-        });
-
-        modelBuilder.Entity<TravelRegion>(entity =>
-        {
-            entity.HasKey(e => e.Rid).HasName("PK_RID");
-        });
-
-        // motor
-
         modelBuilder.Entity<MtDuration>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__MT_durat__3214EC2749FA3AC5");
@@ -162,3 +125,4 @@ public partial class BkgiDataContext : DbContext
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
+*/
