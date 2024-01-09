@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Automating_Quotations.Controllers
+namespace Automating_Quotations.Controllers.TravelCtr
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -40,7 +40,7 @@ namespace Automating_Quotations.Controllers
                     .ToList();
 
                 int daysDifference = (int)(addTravelInsuranceService.EndDate?.DayNumber - addTravelInsuranceService.StartDate?.DayNumber);
-               
+
                 var VAT = 0.18m; // 18%
                 var AdminFee = 4875;
                 List<string> covers = new List<string>
@@ -60,32 +60,32 @@ namespace Automating_Quotations.Controllers
 
                 var travelRateDataResponse = travelRateData.Any()
                     ? travelRateData.Select(tr => new
-                      {
-                          // tr.Rid,
-                          // tr.Cpid,
-                          //tr.Amount,
-                          //currentDate = DateTime.Now,
-                          // age,
-                          NetPrimium = (addTravelInsuranceService.RateOfExchange.GetValueOrDefault() * tr.Amount) + AdminFee,
-                          AdminFee,
-                          VAT,
-                          totalPremium = CalculateGrossPremium(tr.Amount, age, addTravelInsuranceService.RateOfExchange.GetValueOrDefault(), AdminFee, VAT),
-                          covers
-                         // tr.Cp,
-                         // tr.RidNavigation
+                    {
+                        // tr.Rid,
+                        // tr.Cpid,
+                        //tr.Amount,
+                        //currentDate = DateTime.Now,
+                        // age,
+                        NetPrimium = addTravelInsuranceService.RateOfExchange.GetValueOrDefault() * tr.Amount + AdminFee,
+                        AdminFee,
+                        VAT,
+                        totalPremium = CalculateGrossPremium(tr.Amount, age, addTravelInsuranceService.RateOfExchange.GetValueOrDefault(), AdminFee, VAT),
+                        covers
+                        // tr.Cp,
+                        // tr.RidNavigation
 
                     }).ToList()
                     : (object)null;
 
                 var responseModel = new
                 {
-                  // Dob = addTravelInsuranceService.Dob?.ToString("MM/dd/yyyy"),
-                  //  StartDate = addTravelInsuranceService.StartDate?.ToString("MM/dd/yyyy"),
-                  //  EndDate = addTravelInsuranceService.EndDate?.ToString("MM/dd/yyyy"),
-                  // addTravelInsuranceService.RegionId,
-                  //  addTravelInsuranceService.CoverPeriodId,
-                  //  DaysDifference = daysDifference,
-                  TravelRateData = travelRateDataResponse
+                    // Dob = addTravelInsuranceService.Dob?.ToString("MM/dd/yyyy"),
+                    //  StartDate = addTravelInsuranceService.StartDate?.ToString("MM/dd/yyyy"),
+                    //  EndDate = addTravelInsuranceService.EndDate?.ToString("MM/dd/yyyy"),
+                    // addTravelInsuranceService.RegionId,
+                    //  addTravelInsuranceService.CoverPeriodId,
+                    //  DaysDifference = daysDifference,
+                    TravelRateData = travelRateDataResponse
                 };
 
                 return Ok(responseModel);
@@ -96,7 +96,7 @@ namespace Automating_Quotations.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Error: {ex.Message}");
             }
         }
-         
+
         private decimal CalculateGrossPremium(decimal? amount, int age, decimal rateOfExchange, int adminFee, decimal VAT)
         {
             if (!amount.HasValue)
@@ -106,8 +106,8 @@ namespace Automating_Quotations.Controllers
             }
 
             // decimal grossPremium = (rateOfExchange * amount.Value) + adminFee;
-            decimal grossPremium = ((rateOfExchange * amount.Value) + adminFee) +
-               (((rateOfExchange * amount.Value) + adminFee) * VAT);
+            decimal grossPremium = rateOfExchange * amount.Value + adminFee +
+               (rateOfExchange * amount.Value + adminFee) * VAT;
 
             if (age >= 3 && age <= 18)
             {

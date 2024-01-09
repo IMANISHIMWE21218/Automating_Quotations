@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Automating_Quotations.Controllers
+namespace Automating_Quotations.Controllers.TravelCtr
 {
     [Route("api/TravelRates")]
     [ApiController]

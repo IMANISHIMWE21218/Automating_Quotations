@@ -40,15 +40,6 @@ public partial class MtMotoQuotationTable
 
     public int? TypeOfClient { get; set; }
 
-    [Column("VAT", TypeName = "decimal(9, 2)")]
-    public decimal? Vat { get; set; }
-
-    [Column("MotorGuarantyFund_SGF", TypeName = "decimal(9, 2)")]
-    public decimal? MotorGuarantyFundSgf { get; set; }
-
-    [Column(TypeName = "decimal(9, 2)")]
-    public decimal? TotalPremiumPayable { get; set; }
-
     [ForeignKey("MtMotorType")]
     [InverseProperty("MtMotoQuotationTables")]
     public virtual MtMotorType? MtMotorTypeNavigation { get; set; }

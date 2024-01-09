@@ -4,22 +4,23 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Automating_Quotations.Controllers
+namespace Automating_Quotations.Controllers.MotorCtr
 {
-    [Route("api/[controller]")]
+    [Route("api/MotorTypes")]
     [ApiController]
-    public class MtTypeOfClientController : ControllerBase
+    public class MtMotorTypeController : ControllerBase
     {
         private readonly BkgiDataContext _context;
 
-        public MtTypeOfClientController(BkgiDataContext context)
+        public MtMotorTypeController(BkgiDataContext context)
         {
+
             _context = context;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MtTypeOfClient>>> GetMtTypeOfClients()
+        public async Task<ActionResult<IEnumerable<MtMotorType>>> GetMtMotorTypes()
         {
-            return await _context.MtTypeOfClients.ToListAsync();
+            return await _context.MtMotorTypes.ToListAsync();
         }
     }
 }

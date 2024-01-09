@@ -4,22 +4,22 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Automating_Quotations.Controllers
+namespace Automating_Quotations.Controllers.MotorCtr
 {
-    [Route("api/MtDuration")]
+    [Route("api/Thirdparty")]
     [ApiController]
-    public class MtDurationController : ControllerBase
+    public class MtThirdpartyController : ControllerBase
     {
         private readonly BkgiDataContext _context;
 
-        public MtDurationController(BkgiDataContext context)
+        public MtThirdpartyController(BkgiDataContext context)
         {
             _context = context;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MtDuration>>> GetMtDurations()
+        public async Task<ActionResult<IEnumerable<MtThirdparty>>> GetMtThirdparties()
         {
-            return await _context.MtDurations.ToListAsync();
+            return await _context.MtThirdparties.ToListAsync();
         }
     }
 }
