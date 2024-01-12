@@ -36,9 +36,9 @@ public partial class MtMotoQuotationTable
     public int? PeriodOfInsurance { get; set; }
 
     [Column(TypeName = "decimal(9, 2)")]
-    public decimal? ValueOfVehicle { get; set; }
+    public decimal? ValueOfVehicle { get; set; } = 0;
 
-    public int? TypeOfClient { get; set; }
+    public int? TypeOfClient { get; set; } //ownershipType
 
     [ForeignKey("MtMotorType")]
     [InverseProperty("MtMotoQuotationTables")]

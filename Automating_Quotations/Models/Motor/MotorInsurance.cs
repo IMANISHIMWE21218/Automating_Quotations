@@ -12,7 +12,7 @@
         public bool? Fire { get; set; }
         public int? TerritoryLimits { get; set; }
         public int? PeriodOfInsurance { get; set; }
-        public decimal? ValueOfVehicle { get; set; }
+        public decimal? ValueOfVehicle { get; set; } = 0;
         public int? TypeOfClient { get; set; }
     }
 }
