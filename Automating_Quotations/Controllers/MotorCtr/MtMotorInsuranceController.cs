@@ -69,12 +69,13 @@ namespace Automating_Quotations.Controllers
             {
                 using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MotorTypes?MtMotorType={MtMotorType}");
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MotorTypes?codeType={MtMotorType}");
 
-                    // Log the API response content
-                    Console.WriteLine($"API Response: {await response.Content.ReadAsStringAsync()}");
+                    
 
                     response.EnsureSuccessStatusCode();
+                    // Log the API response content
+                    Console.WriteLine($"API Response: { response.EnsureSuccessStatusCode()}");
                     return JsonConvert.DeserializeObject<List<MtMotorType>>(await response.Content.ReadAsStringAsync());
                 }
             }
@@ -87,36 +88,37 @@ namespace Automating_Quotations.Controllers
         }
 
 
-
-
-        private async Task<MtTarifOccupant> FetchOccupantData(int Id)
+private async Task<List<MtTarifOccupant>> FetchOccupantData(int Occupant)
+{
+    try
+    {
+        using (var httpClient = new HttpClient())
         {
-            try
-            {
-                using (var httpClient = new HttpClient())
-                {
-                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtTarifOccupant/{Id}");
-                    response.EnsureSuccessStatusCode();
-                    return JsonConvert.DeserializeObject<MtTarifOccupant>(await response.Content.ReadAsStringAsync());
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in FetchOccupantData: {ex.Message}");
-                throw;
-            }
+            var response = await httpClient.GetAsync($"https://localhost:7110/api/MtTarifOccupant?Id={Occupant}");
+            response.EnsureSuccessStatusCode();
+            
+            // Deserialize the response to a List<MtTarifOccupant>
+            return JsonConvert.DeserializeObject<List<MtTarifOccupant>>(await response.Content.ReadAsStringAsync());
         }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error in FetchOccupantData: {ex.Message}");
+        throw;
+    }
+}
 
-
-        private async Task<MtTerritorialCoverLimit> FetchTerritorialCoverLimitData(int Id)
+        private async Task<List<MtTerritorialCoverLimit>> FetchTerritorialCoverLimitData(int TerritoryLimits)
         {
             try
             {
                 using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtTerritorialCoverLimit/{Id}");
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtTerritorialCoverLimit?Id={TerritoryLimits}");
                     response.EnsureSuccessStatusCode();
-                    return JsonConvert.DeserializeObject<MtTerritorialCoverLimit>(await response.Content.ReadAsStringAsync());
+
+                    // Deserialize as List<MtTerritorialCoverLimit> instead of MtTerritorialCoverLimit
+                    return JsonConvert.DeserializeObject<List<MtTerritorialCoverLimit>>(await response.Content.ReadAsStringAsync());
                 }
             }
             catch (Exception ex)
@@ -126,15 +128,16 @@ namespace Automating_Quotations.Controllers
             }
         }
 
-        private async Task<MtDuration> FetchDurationData(int Id)
+
+        private async Task<List<MtDuration>> FetchDurationData(int PeriodOfInsurance)
         {
             try
             {
                 using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtDuration/{Id}");
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtDuration?Id={PeriodOfInsurance}");
                     response.EnsureSuccessStatusCode();
-                    return JsonConvert.DeserializeObject<MtDuration>(await response.Content.ReadAsStringAsync());
+                    return JsonConvert.DeserializeObject<List<MtDuration>>(await response.Content.ReadAsStringAsync());
                 }
             }
             catch (Exception ex)
@@ -144,15 +147,17 @@ namespace Automating_Quotations.Controllers
             }
         }
 
-        private async Task<MtTypeOfClient> FetchTypeOfClientData(int Id)
+
+
+        private async Task<List<MtTypeOfClient>> FetchTypeOfClientData(int TypeOfClient)
         {
             try
             {
                 using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtTypeOfClient/{Id}");
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtTypeOfClient?Id={TypeOfClient}");
                     response.EnsureSuccessStatusCode();
-                    return JsonConvert.DeserializeObject<MtTypeOfClient>(await response.Content.ReadAsStringAsync());
+                    return JsonConvert.DeserializeObject<List<MtTypeOfClient>>(await response.Content.ReadAsStringAsync());
                 }
             }
             catch (Exception ex)
