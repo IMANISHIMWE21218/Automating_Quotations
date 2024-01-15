@@ -29,9 +29,11 @@ namespace Automating_Quotations.Controllers
         {
             try
             {
+                Console.WriteLine($"Posted MtMotorType: {motorInsurance.MtMotorType}");
+
                 // Fetch data from MotorTypes API based on the posted MtMotorType
                 var motorType = await FetchMotorTypeData((int)motorInsurance.MtMotorType);
-
+                // Fetch data from MotorTypes API based on the posted MtMotorType
 
                 // Fetch data from MtTarifOccupant API
                 var occupant = await FetchOccupantData((int)motorInsurance.Occupant);
@@ -69,56 +71,77 @@ namespace Automating_Quotations.Controllers
             {
                 using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MotorTypes?codeType={MtMotorType}");
-
-                    
-
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MotorTypes");
                     response.EnsureSuccessStatusCode();
-                    // Log the API response content
-                    Console.WriteLine($"API Response: { response.EnsureSuccessStatusCode()}");
-                    return JsonConvert.DeserializeObject<List<MtMotorType>>(await response.Content.ReadAsStringAsync());
+
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    var motorTypes = JsonConvert.DeserializeObject<List<MtMotorType>>(responseData);
+
+                    // Filter the results based on codeType
+                    var filteredMotorTypes = motorTypes.Where(mt => mt.CodeType == MtMotorType).ToList();
+                    Console.WriteLine("Dattaaaa"+filteredMotorTypes);
+
+                    return filteredMotorTypes;
                 }
             }
             catch (Exception ex)
             {
-                // Consider using ILogger for proper logging in a real-world scenario
                 Console.WriteLine($"Error in FetchMotorTypeData: {ex.Message}");
                 throw;
             }
         }
 
 
-private async Task<List<MtTarifOccupant>> FetchOccupantData(int Occupant)
-{
-    try
-    {
-        using (var httpClient = new HttpClient())
-        {
-            var response = await httpClient.GetAsync($"https://localhost:7110/api/MtTarifOccupant?Id={Occupant}");
-            response.EnsureSuccessStatusCode();
-            
-            // Deserialize the response to a List<MtTarifOccupant>
-            return JsonConvert.DeserializeObject<List<MtTarifOccupant>>(await response.Content.ReadAsStringAsync());
-        }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error in FetchOccupantData: {ex.Message}");
-        throw;
-    }
-}
 
-        private async Task<List<MtTerritorialCoverLimit>> FetchTerritorialCoverLimitData(int TerritoryLimits)
+
+
+        private async Task<List<MtTarifOccupant>> FetchOccupantData(int Occupant)
         {
             try
             {
                 using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtTerritorialCoverLimit?Id={TerritoryLimits}");
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtTarifOccupant");
                     response.EnsureSuccessStatusCode();
 
-                    // Deserialize as List<MtTerritorialCoverLimit> instead of MtTerritorialCoverLimit
-                    return JsonConvert.DeserializeObject<List<MtTerritorialCoverLimit>>(await response.Content.ReadAsStringAsync());
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    var occupants = JsonConvert.DeserializeObject<List<MtTarifOccupant>>(responseData);
+
+                    // Filter the results based on occupantId
+                    var filteredOccupants = occupants.Where(occupant => occupant.Id == Occupant).ToList();
+                    Console.WriteLine("Occupant Data: " + JsonConvert.SerializeObject(filteredOccupants));
+
+                    return filteredOccupants;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in FetchOccupantData: {ex.Message}");
+                throw;
+            }
+        }
+
+
+        private async Task<List<MtTerritorialCoverLimit>> FetchTerritorialCoverLimitData(int territoryLimits)
+        {
+            try
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtTerritorialCoverLimit");
+                    response.EnsureSuccessStatusCode();
+
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    var territorialCoverLimits = JsonConvert.DeserializeObject<List<MtTerritorialCoverLimit>>(responseData);
+
+                    // Filter the results based on territoryLimitsId
+                    var filteredTerritorialCoverLimits = territorialCoverLimits
+                        .Where(territorialCoverLimit => territorialCoverLimit.Id == territoryLimits)
+                        .ToList();
+
+                    Console.WriteLine("Territorial Cover Limit Data: " + JsonConvert.SerializeObject(filteredTerritorialCoverLimits));
+
+                    return filteredTerritorialCoverLimits;
                 }
             }
             catch (Exception ex)
@@ -129,15 +152,25 @@ private async Task<List<MtTarifOccupant>> FetchOccupantData(int Occupant)
         }
 
 
-        private async Task<List<MtDuration>> FetchDurationData(int PeriodOfInsurance)
+
+        private async Task<List<MtDuration>> FetchDurationData(int periodOfInsurance)
         {
             try
             {
                 using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtDuration?Id={PeriodOfInsurance}");
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtDuration");
                     response.EnsureSuccessStatusCode();
-                    return JsonConvert.DeserializeObject<List<MtDuration>>(await response.Content.ReadAsStringAsync());
+
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    var durations = JsonConvert.DeserializeObject<List<MtDuration>>(responseData);
+
+                    // Filter the results based on PeriodOfInsurance Id
+                    var filteredDurations = durations.Where(d => d.Id == periodOfInsurance).ToList();
+
+                    Console.WriteLine("Duration Data: " + JsonConvert.SerializeObject(filteredDurations));
+
+                    return filteredDurations;
                 }
             }
             catch (Exception ex)
@@ -149,15 +182,25 @@ private async Task<List<MtTarifOccupant>> FetchOccupantData(int Occupant)
 
 
 
-        private async Task<List<MtTypeOfClient>> FetchTypeOfClientData(int TypeOfClient)
+
+        private async Task<List<MtTypeOfClient>> FetchTypeOfClientData(int typeOfClient)
         {
             try
             {
                 using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtTypeOfClient?Id={TypeOfClient}");
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtTypeOfClient");
                     response.EnsureSuccessStatusCode();
-                    return JsonConvert.DeserializeObject<List<MtTypeOfClient>>(await response.Content.ReadAsStringAsync());
+
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    var typeOfClients = JsonConvert.DeserializeObject<List<MtTypeOfClient>>(responseData);
+
+                    // Filter the results based on TypeOfClient Id
+                    var filteredTypeOfClients = typeOfClients.Where(tc => tc.Id == typeOfClient).ToList();
+
+                    Console.WriteLine("TypeOfClient Data: " + JsonConvert.SerializeObject(filteredTypeOfClients));
+
+                    return filteredTypeOfClients;
                 }
             }
             catch (Exception ex)
@@ -166,6 +209,7 @@ private async Task<List<MtTarifOccupant>> FetchOccupantData(int Occupant)
                 throw;
             }
         }
+
 
 
 

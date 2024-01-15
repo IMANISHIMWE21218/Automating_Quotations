@@ -140,7 +140,7 @@ namespace Automating_Quotations.Controllers.TravelCtr
             {
                 using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.GetAsync($"https://localhost:7110/api/TravelRates?regionId={regionId}&coverPeriodId={coverPeriodId}");
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/TravelRates");
                     response.EnsureSuccessStatusCode();
                     return JsonConvert.DeserializeObject<List<TravelRate>>(await response.Content.ReadAsStringAsync());
                 }
