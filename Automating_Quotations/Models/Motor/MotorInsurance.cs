@@ -10,6 +10,7 @@
         public bool? OwnDamage { get; set; }
         public bool? Theft { get; set; }
         public bool? Fire { get; set; }
+        public int? sumInsuredPerOccupant { get; set; }
         public int? TerritoryLimits { get; set; }
         public int? PeriodOfInsurance { get; set; }
         public decimal? ValueOfVehicle { get; set; } = 0;

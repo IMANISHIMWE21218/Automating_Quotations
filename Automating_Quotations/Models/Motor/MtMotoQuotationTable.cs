@@ -30,6 +30,7 @@ public partial class MtMotoQuotationTable
     public bool? Theft { get; set; }
 
     public bool? Fire { get; set; }
+    public int? sumInsuredPerOccupant { get; set; }
 
     public int? TerritoryLimits { get; set; }
 

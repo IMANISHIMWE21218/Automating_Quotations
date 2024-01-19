@@ -32,8 +32,12 @@ namespace Automating_Quotations.Controllers
                 Console.WriteLine($"Posted MtMotorType: {motorInsurance.MtMotorType}");
 
                 // Fetch data from MotorTypes API based on the posted MtMotorType
-                var motorType = await FetchMotorTypeData((int)motorInsurance.MtMotorType);
+                var thirdparty = await FetchMotorTypeData((int)motorInsurance.MtMotorType);
                 // Fetch data from MotorTypes API based on the posted MtMotorType
+                var rcLessThan5Years = thirdparty.FirstOrDefault()?.RcLessThan5Years ?? 0; // Access the specific element
+
+                // Perform your calculation
+                var sum = rcLessThan5Years + 500;
 
                 // Fetch data from MtTarifOccupant API
                 var occupant = await FetchOccupantData((int)motorInsurance.Occupant);
@@ -47,16 +51,19 @@ namespace Automating_Quotations.Controllers
                 // Fetch data from MtTypeOfClient API
                 var typeOfClient = await FetchTypeOfClientData((int)motorInsurance.TypeOfClient);
 
+
                 // Process the retrieved data as needed
 
                 return Ok(new
                 {
-                    MotorType = motorType,
+                    Thirdparty = thirdparty,
                     Occupant = occupant,
                     TerritorialCoverLimit = territorialCoverLimit,
                     Duration = duration,
                     TypeOfClient = typeOfClient,
+                    Sum = sum,
                     PostedData = motorInsurance
+
                 });
             }
             catch (Exception ex)
@@ -65,23 +72,23 @@ namespace Automating_Quotations.Controllers
             }
         }
 
-        private async Task<List<MtMotorType>> FetchMotorTypeData(int MtMotorType)
+        private async Task<List<MtThirdparty>> FetchMotorTypeData(int MtMotorType)
         {
             try
             {
                 using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MotorTypes");
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/Thirdparty");
                     response.EnsureSuccessStatusCode();
 
                     var responseData = await response.Content.ReadAsStringAsync();
-                    var motorTypes = JsonConvert.DeserializeObject<List<MtMotorType>>(responseData);
+                    var thirdparties = JsonConvert.DeserializeObject<List<MtThirdparty>>(responseData);
 
                     // Filter the results based on codeType
-                    var filteredMotorTypes = motorTypes.Where(mt => mt.CodeType == MtMotorType).ToList();
-                    Console.WriteLine("Dattaaaa"+filteredMotorTypes);
+                    var filteredthirdparties = thirdparties.Where(mt => mt.CodeType == MtMotorType).ToList();
+                    Console.WriteLine("Dattaaaa"+ filteredthirdparties);
 
-                    return filteredMotorTypes;
+                    return filteredthirdparties;
                 }
             }
             catch (Exception ex)
