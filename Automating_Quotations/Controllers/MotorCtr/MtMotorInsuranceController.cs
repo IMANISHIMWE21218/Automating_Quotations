@@ -30,17 +30,107 @@ namespace Automating_Quotations.Controllers
             try
             {
                 Console.WriteLine($"Posted MtMotorType: {motorInsurance.MtMotorType}");
+                // Check if manufactureDate is provided
+                if (motorInsurance.ManufactureDate == null)
+                {
+                    return BadRequest("ManufactureDate is required.");
+                }
+
+                DateOnly manufactureDate = motorInsurance.ManufactureDate.Value;
+                int vehicleAge = DateTime.Now.Year - manufactureDate.Year;
 
                 // Fetch data from MotorTypes API based on the posted MtMotorType
                 var thirdparty = await FetchMotorTypeData((int)motorInsurance.MtMotorType);
-                // Fetch data from MotorTypes API based on the posted MtMotorType
-                var rcLessThan5Years = thirdparty.FirstOrDefault()?.RcLessThan5Years ?? 0; // Access the specific element
 
-                // Perform your calculation
-                var sum = rcLessThan5Years + 500;
+                var ownDamageData = await FetchOwnDamageData((int)motorInsurance.MtMotorType);
+
+                var theftData = await FetchTheftData((int)motorInsurance.MtMotorType);
+
+                var fireData = await FetchFireData((int)motorInsurance.MtMotorType);
 
                 // Fetch data from MtTarifOccupant API
                 var occupant = await FetchOccupantData((int)motorInsurance.Occupant);
+
+
+                // Fetch data from MotorTypes API based on the posted MtMotorType
+                // Access the specific element based on vehicleAge
+
+                // valiables declared
+                decimal NpBthirdpartyDvalue = 0;
+                decimal NpmaterialDamage = 0;
+                decimal Nptheft = 0;
+                decimal Npfire = 0;
+                decimal Npoccupant = 0;
+                decimal vehicleValue = (decimal)motorInsurance.ValueOfVehicle;
+               
+                decimal sumInsuredPerOccupant = (decimal)motorInsurance.sumInsuredPerOccupant;
+                decimal occupantRate = 0.005m;   //0.5%
+
+                if (vehicleAge < 5)
+                {
+                    NpBthirdpartyDvalue = thirdparty.FirstOrDefault()?.RcLessThan5Years ?? 0;
+                    NpmaterialDamage = ownDamageData.FirstOrDefault()?.DmLessThan5Years ?? 0;
+                    Nptheft = theftData.FirstOrDefault()?.VolLessThan5Years ?? 0;
+                    Npfire = fireData.FirstOrDefault()?.IncendieLessThan5Years ?? 0;
+                    Npoccupant = occupant.FirstOrDefault()?.Death ?? 0;
+                }
+                else if (vehicleAge >= 5 && vehicleAge <= 10)
+                {
+                    NpBthirdpartyDvalue = thirdparty.FirstOrDefault()?.Rc5To10Years ?? 0;
+                    NpmaterialDamage = ownDamageData.FirstOrDefault()?.Dm5To10Years ?? 0;
+                    Nptheft = theftData.FirstOrDefault()?.Vol5To10Years ?? 0;
+                    Npoccupant = occupant.FirstOrDefault()?.Death ?? 0;
+                }
+                else if (vehicleAge > 10)
+                {
+                    NpBthirdpartyDvalue = thirdparty.FirstOrDefault()?.RcGreaterThan10Years ?? 0;
+                    NpmaterialDamage = ownDamageData.FirstOrDefault()?.DmGreaterThan10Years ?? 0;
+                    Nptheft = theftData.FirstOrDefault()?.VolGreaterThan10Years ?? 0;
+                    Npoccupant = occupant.FirstOrDefault()?.Death ?? 0;
+
+                }
+               
+
+                decimal T_Np_thirdparty = 0;
+                decimal T_Np_materialDamage = 0;
+                decimal T_Np_theft = 0;
+                decimal T_Np_fire = 0;
+                decimal T_Np_occupant = 0;
+
+                //decimal loading = 25/100;
+
+                decimal loading;
+
+                if (vehicleAge <= 5)
+                {
+                    loading = 0;
+                }
+                else
+                {
+                    loading = 0.25m;
+                }
+                Console.WriteLine("Da .      ... .!" + loading);
+
+                T_Np_thirdparty = NpBthirdpartyDvalue;
+                T_Np_materialDamage = ((vehicleValue* loading)+ vehicleValue) * NpmaterialDamage ;
+                T_Np_theft = ((vehicleValue * loading) + vehicleValue) * Nptheft;
+                T_Np_fire = ((vehicleValue * loading) + vehicleValue) * Npfire;
+
+                decimal vehicle_type = (decimal)motorInsurance.MtMotorType;
+
+                if (vehicle_type == 12)
+                {
+                    T_Np_occupant = (Npoccupant * occupantRate * sumInsuredPerOccupant);
+                }
+                else
+                {
+                    T_Np_occupant = (Npoccupant * occupantRate);
+                }
+
+
+
+
+
 
                 // Fetch data from MtTerritorialCoverLimit API
                 var territorialCoverLimit = await FetchTerritorialCoverLimitData((int)motorInsurance.TerritoryLimits);
@@ -61,10 +151,16 @@ namespace Automating_Quotations.Controllers
                     TerritorialCoverLimit = territorialCoverLimit,
                     Duration = duration,
                     TypeOfClient = typeOfClient,
-                    Sum = sum,
-                    PostedData = motorInsurance
+                    PostedData = motorInsurance,
+                    VehicleAge = vehicleAge,
+                    total_Np_thirdparty = T_Np_thirdparty,
+                    total_Np_materialDamage = T_Np_materialDamage,
+                    total_T_Np_theft = T_Np_theft,
+                    total_T_Np_fire = T_Np_fire,
+                    total_T_Np_occupant = T_Np_occupant
 
-                });
+
+                }) ;
             }
             catch (Exception ex)
             {
@@ -97,6 +193,96 @@ namespace Automating_Quotations.Controllers
                 throw;
             }
         }
+
+
+
+        private async Task<List<MtOwnDamage>> FetchOwnDamageData(int MtMotorType)
+        {
+            try
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtOwnDamage");
+                    response.EnsureSuccessStatusCode();
+
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    var ownDamageData = JsonConvert.DeserializeObject<List<MtOwnDamage>>(responseData);
+
+                    // Filter the results based on MtMotorType
+                    var filteredOwnDamageData = ownDamageData.Where(damage => damage.CodeType == MtMotorType).ToList();
+                    Console.WriteLine("OwnDamage Data: " + JsonConvert.SerializeObject(filteredOwnDamageData));
+
+                    return filteredOwnDamageData;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in FetchOwnDamageData: {ex.Message}");
+                throw;
+            }
+        }
+
+
+        
+        
+        private async Task<List<MtTheft>> FetchTheftData(int MtMotorType)
+        {
+            try
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtTheft");
+                    response.EnsureSuccessStatusCode();
+
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    var theftData = JsonConvert.DeserializeObject<List<MtTheft>>(responseData);
+
+                    // Filter the results based on MtMotorType
+                    var filteredTheftData = theftData.Where(data => data.CodeType == MtMotorType).ToList();
+                    Console.WriteLine("Theft Data: " + JsonConvert.SerializeObject(filteredTheftData));
+
+                    return filteredTheftData;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in FetchTheftData: {ex.Message}");
+                throw;
+            }
+        }
+
+        private async Task<List<MtFire>> FetchFireData(int MtMotorType)
+        {
+            try
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MtFire");
+                    response.EnsureSuccessStatusCode();
+
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    var fireData = JsonConvert.DeserializeObject<List<MtFire>>(responseData);
+
+                    // Filter the results based on MtMotorType
+                    var filteredFireData = fireData.Where(data => data.CodeType == MtMotorType).ToList();
+                    Console.WriteLine("Fire Data: " + JsonConvert.SerializeObject(filteredFireData));
+
+                    return filteredFireData;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in FetchFireData: {ex.Message}");
+                throw;
+            }
+        }
+
+
+
+
+
+
+
 
 
 
