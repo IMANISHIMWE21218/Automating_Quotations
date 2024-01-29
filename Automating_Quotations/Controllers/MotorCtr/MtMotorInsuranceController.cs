@@ -51,6 +51,9 @@ namespace Automating_Quotations.Controllers
                 // Fetch data from MtTarifOccupant API
                 var occupant = await FetchOccupantData((int)motorInsurance.Occupant);
 
+                var MotorTypesSeats = await Fetch_SeatLoadData((int)motorInsurance.MtMotorType);
+               
+
 
                 // Fetch data from MotorTypes API based on the posted MtMotorType
                 // Access the specific element based on vehicleAge
@@ -65,6 +68,7 @@ namespace Automating_Quotations.Controllers
                
                 decimal sumInsuredPerOccupant = (decimal)motorInsurance.sumInsuredPerOccupant;
                 decimal occupantRate = 0.005m;   //0.5%
+                var seats = 0;
 
                 if (vehicleAge < 5)
                 {
@@ -73,6 +77,7 @@ namespace Automating_Quotations.Controllers
                     Nptheft = theftData.FirstOrDefault()?.VolLessThan5Years ?? 0;
                     Npfire = fireData.FirstOrDefault()?.IncendieLessThan5Years ?? 0;
                     Npoccupant = occupant.FirstOrDefault()?.Death ?? 0;
+                    seats = MotorTypesSeats.FirstOrDefault()?.Seats ?? 0;
                 }
                 else if (vehicleAge >= 5 && vehicleAge <= 10)
                 {
@@ -80,6 +85,7 @@ namespace Automating_Quotations.Controllers
                     NpmaterialDamage = ownDamageData.FirstOrDefault()?.Dm5To10Years ?? 0;
                     Nptheft = theftData.FirstOrDefault()?.Vol5To10Years ?? 0;
                     Npoccupant = occupant.FirstOrDefault()?.Death ?? 0;
+                    seats = MotorTypesSeats.FirstOrDefault()?.Seats ?? 0;
                 }
                 else if (vehicleAge > 10)
                 {
@@ -87,15 +93,19 @@ namespace Automating_Quotations.Controllers
                     NpmaterialDamage = ownDamageData.FirstOrDefault()?.DmGreaterThan10Years ?? 0;
                     Nptheft = theftData.FirstOrDefault()?.VolGreaterThan10Years ?? 0;
                     Npoccupant = occupant.FirstOrDefault()?.Death ?? 0;
+                    seats = MotorTypesSeats.FirstOrDefault()?.Seats ?? 0;
 
                 }
-               
+
+                Console.WriteLine("seatinnnnnnnnnnnnng    .........." + seats);
+
 
                 decimal T_Np_thirdparty = 0;
                 decimal T_Np_materialDamage = 0;
                 decimal T_Np_theft = 0;
                 decimal T_Np_fire = 0;
                 decimal T_Np_occupant = 0;
+                decimal T_Np_seatsLoads = 0;
 
                 //decimal loading = 25/100;
 
@@ -112,20 +122,37 @@ namespace Automating_Quotations.Controllers
                 Console.WriteLine("Da .      ... .!" + loading);
 
                 T_Np_thirdparty = NpBthirdpartyDvalue;
-                T_Np_materialDamage = ((vehicleValue* loading)+ vehicleValue) * NpmaterialDamage ;
-                T_Np_theft = ((vehicleValue * loading) + vehicleValue) * Nptheft;
-                T_Np_fire = ((vehicleValue * loading) + vehicleValue) * Npfire;
+                //T_Np_materialDamage = ((vehicleValue* loading)+ vehicleValue) * NpmaterialDamage ;
+                //T_Np_theft = ((vehicleValue * loading) + vehicleValue) * Nptheft;
+                //T_Np_fire = ((vehicleValue * loading) + vehicleValue) * Npfire;
+
+                // ...
+
+                bool ownDamage = motorInsurance.OwnDamage ?? false;
+                bool theft = motorInsurance.Theft ?? false;
+                bool fire = motorInsurance.Fire ?? false;
+
+                T_Np_materialDamage = ownDamage ? ((vehicleValue * loading) + vehicleValue) * NpmaterialDamage : 0;
+                T_Np_theft = theft ? ((vehicleValue * loading) + vehicleValue) * Nptheft : 0;
+                T_Np_fire = fire ? ((vehicleValue * loading) + vehicleValue) * Npfire : 0;
+
+                // ...
+
 
                 decimal vehicle_type = (decimal)motorInsurance.MtMotorType;
 
                 if (vehicle_type == 12)
                 {
-                    T_Np_occupant = (Npoccupant * occupantRate * sumInsuredPerOccupant);
+                    T_Np_occupant = ((Npoccupant * occupantRate) * sumInsuredPerOccupant);
                 }
                 else
                 {
                     T_Np_occupant = (Npoccupant * occupantRate);
                 }
+
+                decimal vehicle_SeatCapacity = (int)motorInsurance.SeatCapacity;
+
+                T_Np_seatsLoads = seats * vehicle_SeatCapacity;
 
 
 
@@ -157,7 +184,8 @@ namespace Automating_Quotations.Controllers
                     total_Np_materialDamage = T_Np_materialDamage,
                     total_T_Np_theft = T_Np_theft,
                     total_T_Np_fire = T_Np_fire,
-                    total_T_Np_occupant = T_Np_occupant
+                    total_T_Np_occupant = T_Np_occupant,
+                    seats = T_Np_seatsLoads
 
 
                 }) ;
@@ -276,6 +304,33 @@ namespace Automating_Quotations.Controllers
                 throw;
             }
         }
+
+        private async Task<List<MtMotorType>> Fetch_SeatLoadData(int MtMotorType)
+        {
+            try
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    var response = await httpClient.GetAsync($"https://localhost:7110/api/MotorTypes");
+                    response.EnsureSuccessStatusCode();
+
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    var MotorTypesSeats = JsonConvert.DeserializeObject<List<MtMotorType>>(responseData);
+
+                    // Filter the results based on MtMotorType
+                    var filteredMotorTypesSeats = MotorTypesSeats.Where(mt => mt.CodeType == MtMotorType).ToList();
+                    Console.WriteLine("Motor Types Seats Data: " + JsonConvert.SerializeObject(filteredMotorTypesSeats));
+
+                    return filteredMotorTypesSeats;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in Fetch_SeatLoadData: {ex.Message}");
+                throw;
+            }
+        }
+
 
 
 
