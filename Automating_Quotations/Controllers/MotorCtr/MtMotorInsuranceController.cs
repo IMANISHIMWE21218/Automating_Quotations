@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using System;
 using System.Drawing;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Automating_Quotations.Controllers
 {
@@ -52,7 +54,13 @@ namespace Automating_Quotations.Controllers
                 var occupant = await FetchOccupantData((int)motorInsurance.Occupant);
 
                 var MotorTypesSeats = await Fetch_SeatLoadData((int)motorInsurance.MtMotorType);
+
+                // Fetch data from MtTerritorialCoverLimit API
+                var territorialCoverLimits = await FetchTerritorialCoverLimitData((int)(motorInsurance.TerritoryLimits ?? 0));
+
                
+
+
 
 
                 // Fetch data from MotorTypes API based on the posted MtMotorType
@@ -69,6 +77,10 @@ namespace Automating_Quotations.Controllers
                 decimal sumInsuredPerOccupant = (decimal)motorInsurance.sumInsuredPerOccupant;
                 decimal occupantRate = 0.005m;   //0.5%
                 var seats = 0;
+                var vehicleUsage = "";
+                decimal territorialCover = 0;
+
+
 
                 if (vehicleAge < 5)
                 {
@@ -78,6 +90,9 @@ namespace Automating_Quotations.Controllers
                     Npfire = fireData.FirstOrDefault()?.IncendieLessThan5Years ?? 0;
                     Npoccupant = occupant.FirstOrDefault()?.Death ?? 0;
                     seats = MotorTypesSeats.FirstOrDefault()?.Seats ?? 0;
+                    vehicleUsage = MotorTypesSeats.FirstOrDefault()?.VehicleUsageLabel ?? "";
+                    territorialCover = territorialCoverLimits.FirstOrDefault()?.Rate ?? 0;
+
                 }
                 else if (vehicleAge >= 5 && vehicleAge <= 10)
                 {
@@ -86,6 +101,9 @@ namespace Automating_Quotations.Controllers
                     Nptheft = theftData.FirstOrDefault()?.Vol5To10Years ?? 0;
                     Npoccupant = occupant.FirstOrDefault()?.Death ?? 0;
                     seats = MotorTypesSeats.FirstOrDefault()?.Seats ?? 0;
+                    vehicleUsage = MotorTypesSeats.FirstOrDefault()?.VehicleUsageLabel ?? "";
+                    territorialCover = territorialCoverLimits.FirstOrDefault()?.Rate ?? 0;
+
                 }
                 else if (vehicleAge > 10)
                 {
@@ -94,10 +112,19 @@ namespace Automating_Quotations.Controllers
                     Nptheft = theftData.FirstOrDefault()?.VolGreaterThan10Years ?? 0;
                     Npoccupant = occupant.FirstOrDefault()?.Death ?? 0;
                     seats = MotorTypesSeats.FirstOrDefault()?.Seats ?? 0;
+                    vehicleUsage = MotorTypesSeats.FirstOrDefault()?.VehicleUsageLabel ?? "";
+                    territorialCover = territorialCoverLimits.FirstOrDefault()?.Rate ?? 0;
+
 
                 }
 
-                Console.WriteLine("seatinnnnnnnnnnnnng    .........." + seats);
+                // Assuming Rate is a property of MtTerritorialCoverLimit and is of a numeric type
+                
+
+                Console.WriteLine("Territorial Cover Rate ---------: " + territorialCover);
+
+
+
 
 
                 decimal T_Np_thirdparty = 0;
@@ -155,12 +182,57 @@ namespace Automating_Quotations.Controllers
                 T_Np_seatsLoads = seats * vehicle_SeatCapacity;
 
 
+                ///  Net Premium/Base 
+                ///Total
+                var Net_Premium_Base = T_Np_thirdparty + T_Np_materialDamage + T_Np_theft + T_Np_fire + T_Np_occupant + T_Np_seatsLoads;
+
+
+                ///    Net Premium
+                var PhirdParty_Liability = T_Np_thirdparty;
+                var MaterialDamage = T_Np_materialDamage;
+                var Theft = T_Np_theft;
+                var Fire = T_Np_fire;
+                var Occupants = T_Np_occupant;
+                var SeatLoad = T_Np_seatsLoads;
+                ///Total
+                var Net_Premium = PhirdParty_Liability + MaterialDamage + Theft + Fire + Occupants + SeatLoad;
+
+
+                /// Territorial cover extension
+                var PhirdParty_Territorial = PhirdParty_Liability * territorialCover;
+                var MaterialDamage_Territorial = MaterialDamage * territorialCover;
+
+                var Theft_Territorial = 0;
+
+                if (vehicleUsage.Equals("private", StringComparison.OrdinalIgnoreCase))
+                {
+                    Theft_Territorial = (int)(vehicleValue * (1 / 100)); // C22*1/100 when vehicleUsage is private
+                }
+                else
+                {
+                    Theft_Territorial = (int)(vehicleValue * (0.6m / 100)); // C22*0.6/100 for other cases
+                }
+
+                var Fire_Territorial = Fire * territorialCover;
+                var Occupants_Territorial = Occupants * territorialCover;
+                var SeatLoad_Territorial = SeatLoad * territorialCover * 0;
+
+                ///Total
+                var Territorialcoverextension = PhirdParty_Territorial + MaterialDamage_Territorial + Theft_Territorial + Fire_Territorial + Occupants_Territorial + SeatLoad_Territorial;
+
+
+                ///Motor Guaranty Fund
+                ///Total
+                var MotorGuarantyFund = PhirdParty_Liability * (10 / 100);
+
+                ///Total
+                var AdminFee = 12500;
 
 
 
 
-                // Fetch data from MtTerritorialCoverLimit API
-                var territorialCoverLimit = await FetchTerritorialCoverLimitData((int)motorInsurance.TerritoryLimits);
+
+
 
                 // Fetch data from MtDuration API
                 var duration = await FetchDurationData((int)motorInsurance.PeriodOfInsurance);
@@ -175,7 +247,7 @@ namespace Automating_Quotations.Controllers
                 {
                     Thirdparty = thirdparty,
                     Occupant = occupant,
-                    TerritorialCoverLimit = territorialCoverLimit,
+                    //TerritorialCoverLimit = territorialCoverLimit,
                     Duration = duration,
                     TypeOfClient = typeOfClient,
                     PostedData = motorInsurance,
@@ -185,7 +257,9 @@ namespace Automating_Quotations.Controllers
                     total_T_Np_theft = T_Np_theft,
                     total_T_Np_fire = T_Np_fire,
                     total_T_Np_occupant = T_Np_occupant,
-                    seats = T_Np_seatsLoads
+                    seats = T_Np_seatsLoads,
+
+                    terrotorial= Theft_Territorial
 
 
                 }) ;
