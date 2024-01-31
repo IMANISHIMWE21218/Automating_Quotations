@@ -3,6 +3,7 @@ using Automating_Quotations.Models.Motor;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json;
 using System;
 using System.Drawing;
@@ -228,10 +229,35 @@ namespace Automating_Quotations.Controllers
                 ///Total
                 var AdminFee = 12500;
 
+                ///TAXABLE PREMIUM
+                var TaxablePrem_PhirdParty = PhirdParty_Liability + PhirdParty_Territorial + AdminFee;
+                var TaxablePrem_MaterialDamage = MaterialDamage + MaterialDamage_Territorial + 0;
+                var TaxablePrem_Theft = Theft + Theft_Territorial + 0 ;
+                var TaxablePrem_Fire = Fire + Fire_Territorial + 0;
+                var TaxablePrem_Occupant = Occupants + Occupants_Territorial + 0;
+                var TaxablePrem_SeatLoad = SeatLoad + SeatLoad_Territorial + 0;
+                ///Total 
+                var TAXABLE_PREMIUM = TaxablePrem_PhirdParty + TaxablePrem_MaterialDamage + TaxablePrem_Theft + TaxablePrem_Fire + TaxablePrem_Occupant + TaxablePrem_SeatLoad;
 
+                ///VAT@18 %
+                var vat_PhirdParty = TaxablePrem_PhirdParty * 0.18m;
+                var vat_MaterialDamage = TaxablePrem_MaterialDamage * 0.18m;
+                var vat_Theft = TaxablePrem_Theft * 0.18m;
+                var vat_Fire = TaxablePrem_Fire * 0.18m;
+                var vat_Occupant = TaxablePrem_Occupant * 0.18m;
+                var vat_SeatLoad = TaxablePrem_SeatLoad * 0.18m;
+                ///Total
+                var vatTotal = vat_PhirdParty + vat_MaterialDamage + vat_Theft + vat_Fire + vat_Occupant + vat_SeatLoad;
 
+                ///TOTAL PREMIUM
+                var thirdparty_TotalPrem = MotorGuarantyFund + TaxablePrem_PhirdParty + vat_PhirdParty;
+                var MaterialDamage_TotalPrem = TaxablePrem_MaterialDamage + vat_MaterialDamage;
+                var Theft_TotalPrem = TaxablePrem_Theft + vat_Theft;
+                var Fire_TotalPrem = TaxablePrem_Fire + vat_Fire;
+                var Occupant_TotalPrem = TaxablePrem_Occupant + vat_Occupant;
+                var SeatLoad_TotalPrem = TaxablePrem_SeatLoad + vat_SeatLoad;
 
-
+                var TotalPremium = thirdparty_TotalPrem + MaterialDamage_TotalPrem + Theft_TotalPrem + Fire_TotalPrem + Occupant_TotalPrem + SeatLoad_TotalPrem;
 
 
                 // Fetch data from MtDuration API
@@ -259,7 +285,8 @@ namespace Automating_Quotations.Controllers
                     total_T_Np_occupant = T_Np_occupant,
                     seats = T_Np_seatsLoads,
 
-                    terrotorial= Theft_Territorial
+                    terrotorial= Theft_Territorial,
+                    total= TotalPremium
 
 
                 }) ;
