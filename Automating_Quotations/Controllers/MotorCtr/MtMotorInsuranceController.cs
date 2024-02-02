@@ -266,28 +266,31 @@ namespace Automating_Quotations.Controllers
                 // Fetch data from MtTypeOfClient API
                 var typeOfClient = await FetchTypeOfClientData((int)motorInsurance.TypeOfClient);
 
+                List<string> insuranceItems = new List<string>
+                {
+                    "tpd",
+                    "medical expenses",
+                    "material damage",
+                    "own damage",
+                    "theft",
+                    "fire"
+                };
+
 
                 // Process the retrieved data as needed
 
                 return Ok(new
                 {
-                    Thirdparty = thirdparty,
-                    Occupant = occupant,
+                    // Thirdparty = thirdparty,
+                    //Occupant = occupant,
                     //TerritorialCoverLimit = territorialCoverLimit,
-                    Duration = duration,
-                    TypeOfClient = typeOfClient,
-                    PostedData = motorInsurance,
-                    VehicleAge = vehicleAge,
-                    total_Np_thirdparty = T_Np_thirdparty,
-                    total_Np_materialDamage = T_Np_materialDamage,
-                    total_T_Np_theft = T_Np_theft,
-                    total_T_Np_fire = T_Np_fire,
-                    total_T_Np_occupant = T_Np_occupant,
-                    seats = T_Np_seatsLoads,
-
-                    terrotorial= Theft_Territorial,
-                    total= TotalPremium
-
+                    netPremium = Net_Premium,
+                    documentFees = AdminFee,
+                    sgf = MotorGuarantyFund,
+                    vat = vatTotal,
+                    totalPremium = TotalPremium,
+                    installments = "",
+                    covers = insuranceItems
 
                 }) ;
             }
